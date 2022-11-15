@@ -1,8 +1,8 @@
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 stages:
-  - stage: get commandbox
+  - stage: Testing
     jobs:
     - job: Lucee4
       steps:
@@ -10,3 +10,15 @@ stages:
           echo Starting the build
           curl --location -o /tmp/box.zip https://www.ortussolutions.com/parent/download/commandbox/type/bin
           unzip /tmp/box.zip -d /tmp/
+          chmod a+x /tmp/box
+          /tmp/box install production=false
+          /tmp/box server start cfengine=lucee@4
+          mkdir /tmp/results/
+          /tmp/box testbox run outputFile=testbox-lucee4.xml reporter=junit
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: '**/testbox-*.xml' 
+          testRunTitle: TestBox Tests
+          failTaskOnFailedTests: true
+        displayName: 'TestBox Results'
